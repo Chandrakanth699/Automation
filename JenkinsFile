@@ -1,0 +1,42 @@
+pipeline {
+    agent { label 'AgentName' }
+	environment {
+                Environment Details
+	}
+    stages {
+        stage('GIT Checkout stage') {
+            steps {
+		    	script {
+                		
+			}
+		}
+		stage('Versioning Stage'){
+			steps {
+				script {
+			
+			}
+		}
+		stage('Build + SonarQube analysis') {
+		steps {
+			script {
+					
+				}
+			}
+		}
+		stage('Package management Stage') {
+		steps {
+			script {
+			      def project = "${ProjectName}"
+			      switch(project) {
+					case "":
+					  def  = ""
+					  def  = ""					   					 
+					  break
+					case "":
+					  def  = ""
+					  def  = ""					  
+					  break	
+            
+         }
+      }
+  }
