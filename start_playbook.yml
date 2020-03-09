@@ -1,0 +1,27 @@
+---
+- hosts: INPUTZONE
+  remote_user: "{{ User Account }}"
+  tasks:
+   - name: Permissions to base directory
+     shell: chmod 777 *.sh
+     args:
+       chdir: "{{ BASE_DIR }}"
+       warn: false
+
+   - name: Permissions to deploy directory
+     shell: chmod 777 *.sh
+     args:
+       chdir: "{{ User Account }}"
+       warn: false
+
+   - name: Execute start 
+     shell: "./operations.sh {{ serverdetails }} servicename Start"
+     args:
+       chdir: "{{ DEPLOY_DIR }}"
+     register: stopoutput
+   - debug: var=stopoutput.stdout_lines
+
+   - name: Listing Docker containers
+     shell: docker ps
+     register: containerlist
+   - debug: var=containerlist.stdout_lines
