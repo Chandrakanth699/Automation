@@ -1,19 +1,55 @@
-FROM chandrakanth/jdk-oracle
-MAINTAINER chandrakanth <chandrakanthdudam5@gmail.com>
+FROM openjdk:8-jdk-stretch
 
-RUN \
-  wget -q -O - http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key \
-       | apt-key add - && \
-  echo "deb http://pkg.jenkins-ci.org/debian binary/" \
-       > /etc/apt/sources.list.d/jenkins.list && \
-  apt-get update && \
-  apt-get -y install \
-          jenkins && \
-  rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get upgrade -y && apt-get install -y curl && apt-get install -y python && apt-get install -y nano && apt-get install -y git && apt-get install -y mlocate
+#docker build -f Dockerfile.Jenkins -t chandrakanth699/jenkins:1.0 . 
+#docker run --rm -ti --entrypoint sh 602d499dc058  -c "ls -alF /usr/local/bin/"
+#1e48a7b7529a4689a1de30d1ed126acf
+#docker run -p 8080:8080 -v /Users/chandrakanth699/jenkins_volumes:/var/jenkins_home 905012524ddf 
+#Create a volume on container engine and expose it to container
+ARG user=chandra
+ARG group=chandra
+ARG uid=1000
+ARG gid=1000
+ARG http_port=8080
+ARG agent_port=50000
+ARG JENKINS_HOME=/chandra/jenkins_home
+#ARG TOMCAT_HOME=/chandra/tomcat
+ARG JAVA_ARGS="-Xmx2048m -Djava.awt.headless=true"
 
-VOLUME ["/root/.jenkins"]
+ENV JENKINS_HOME $JENKINS_HOME
+ENV JENKINS_SLAVE_AGENT_PORT ${agent_port}
 
-RUN rm /usr/sbin/policy-rc.d
-CMD ["/usr/bin/java", "-jar", "/usr/share/jenkins/jenkins.war", "--webroot=/root/.jenkins/web"]
+# Jenkins is run with user `jenkins`, uid = 1000
+# If you bind mount a volume from the host or a data container,
+# ensure you use the same uid
+RUN mkdir -p $JENKINS_HOME \
+  && chown ${uid}:${gid} $JENKINS_HOME \
+  && groupadd -g ${gid} ${group} \
+  && useradd  -u ${uid} -g ${gid} -m -s /bin/bash ${user}
+  #&& mkdir -p $TOMCAT_HOME \
+  # && chown ${user}:${group} $TOMCAT_HOME && mkdir -p $TOMCAT_HOME/latest 
+ # && groupadd  tomcat \
+ # && useradd -s /bin/false -g tomcat -d $TOMCAT_HOME tomcat \
 
-EXPOSE 8080
+RUN curl -o $JENKINS_HOME/sonar-scanner-cli-3.3.0.1492-linux.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.3.0.1492-linux.zip && unzip $JENKINS_HOME/sonar-scanner-cli-3.3.0.1492-linux.zip
+#RUN curl -o /tmp/tomcat-9.0.31.tar.gz  http://apache.mirrors.ionfish.org/tomcat/tomcat-9/v9.0.31/bin/apache-tomcat-9.0.31.tar.gz  && tar xf /tmp/tomcat-9.0.31.tar.gz -C $TOMCAT_HOME \
+    #&& ln -s $TOMCAT_HOME/apache-tomcat-9.0.31 $TOMCAT_HOME/latest 
+
+#COPY tomcat-users.xml  $TOMCAT_HOME/apache-tomcat-9.0.31/conf/tomcat-users.xml
+#RUN  chown -R ${user}:${group} $TOMCAT_HOME
+   # && chown -R tomcat:tomcat $TOMCAT_HOME/latest
+# mount a volume from host where you are running docker containers so that the data and config are not lost.
+
+VOLUME $JENKINS_HOME
+
+COPY --chown=chandra jenkins.war jenkins.war
+#COPY --chown=chandra jenkins.war $TOMCAT_HOME/apache-tomcat-9.0.31/webapps/jenkins.war
+ENV JAVA_ARGS $JAVA_ARGS
+RUN chown -R ${user} "$JENKINS_HOME" 
+# for main web interface:
+EXPOSE ${http_port}
+# will be used by attached slave agents:
+EXPOSE ${agent_port}
+USER ${user}
+#CMD /abhi/tomcat/apache-tomcat-9.0.31/bin/catalina.sh run
+CMD ["java","-jar","jenkins.war"]
