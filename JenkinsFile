@@ -4,6 +4,14 @@ pipeline {
                 Environment Details
 	}
     stages {
+    
+    	stage( 'Worksapce clean') {
+	steps {
+		script {
+			clean WS
+			}
+	       }
+
         stage('GIT Checkout stage') {
             steps {
 		    	script {
@@ -23,6 +31,14 @@ pipeline {
 				}
 			}
 		}
+		stage( 'CheckMarks') {
+		steps { 
+			script { 
+				Static Code Analsysis. 
+				}
+			}
+
+		}
 		stage('Package management Stage') {
 		steps {
 			script {
@@ -37,6 +53,38 @@ pipeline {
 					  def  = ""					  
 					  break	
             
-         }
-      }
-  }
+         			}
+     			 }
+			 
+		stage( 'Docker Build') {
+		steps { 
+			script {"""
+				docker build -f Dockerfile.Jenkins -t chandrakanth699/jenkins:1.0 . 
+				docker push -t tagename
+				}"""
+			}
+
+		}
+		stage('Container Deployment'){
+		steps {
+			script {"""
+
+				}
+			}
+		}
+
+		stage('Email Notification'){
+		steps {
+			script {
+				
+				}
+		
+		}
+	
+		}
+
+   	 }
+
+	}
+
+}
