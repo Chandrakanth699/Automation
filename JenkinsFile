@@ -68,6 +68,7 @@ pipeline {
 		stage('Container Deployment'){
 		steps {
 			script {"""
+				kubectl apply -f deployment.yaml
 
 				}
 			}
